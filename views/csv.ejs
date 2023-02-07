@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>CSV-UPLOAD</title>
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.0.1/css/bootstrap.min.css"
+      integrity="sha512-Ez0cGzNzHR1tYAv56860NLspgUGuQw16GiOOp/I2LuTmpSK9xDXlgJz3XN4cnpXWDmkNBKXR/VDMTCnAaEooxA=="
+      crossorigin="anonymous"
+      referrerpolicy="no-referrer"
+    />
+    <script
+      src="https://kit.fontawesome.com/ffc9ecaaa4.js"
+      crossorigin="anonymous"
+    ></script>
+    <link rel="stylesheet" href="/styles/style.css" />
+  </head>
+  <body>
+    <!-- when table data is shown on screen -->
+    <% if(showTableData) { %>
+    <!-- creating container -->
+    <div class="container">
+      <!-- creating row then assing column -->
+      <div class="row">
+        <div class="col-md-10 offset-md-1">
+          <!-- which card to use from bootstrap -->
+          <div class="card text-dark bg-light mb-3">
+            <span class="position-absolute m-3">
+              <!-- back button -->
+              <a
+                type="button"
+                href="/"
+                class="btn btn-sm btn-outline-dark border"
+              >
+                <i class="fa-solid fa-arrow-left"></i> Back
+              </a>
+            </span>
+            <!-- card body where everything is shown-->
+            <div class="card-body row">
+              <!-- heading on card body -->
+              <span class="text-center h1">
+                Data of
+                <p class="d-inline text-dark"><%= data.csvFileName %> File</p>
+              </span>
+              <!-- search box -->
+              <div style="min-width: 300px" class="form-group col-3 my-3">
+                <label for="Search"
+                  >Search Based On:
+                  <b><%= Object.keys(data.csvData[0])[0] %></b></label
+                >
+                <input
+                  type="text"
+                  class="form-control"
+                  id="Search"
+                  placeholder=""
+                  onkeyup="SearchByFirstName()"
+                />
+              </div>
+              <!-- creating table where data of csv will be shown -->
+              <div class="table-responsive" id="tableContainer">
+                <div class="overflow-auto wrapper-class" id="scrollbar">
+                  <table id="csvTable" class="table table-bordered">
+                    <thead>
+                      <tr>
+                        <% for (const key in data.csvData[0]) { %>
+                        <th data-sort="<%= key %>"><%= key %></th>
+                        <% } %>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      <% for (let i = 0; i < data.csvData.length; i++) { %>
+                      <tr>
+                        <% for (const key in data.csvData[i]) { %>
+                        <td><%= data.csvData[i][key] %></td>
+                        <% } %>
+                      </tr>
+                      <% } %>
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <% } %>
+    <!-- when table data is not shown -->
+    <% if(!showTableData) { %>
+    <!-- layout of screen -->
+    <div class="row mt-2 justify-content-center">
+      <div class="col-8 border" style="background-color: #31def5">
+        <p class="h1 mt-4 mb-4 text-center">CSV Upload</p>
+        <div class="form-group">
+          <div class="custom-file">
+            <form action="/" method="post" enctype="multipart/form-data">
+              <div class="d-flex justify-content-center mt-1 mb-2">
+                <!-- csv file input -->
+                <input
+                  id="fileInput"
+                  name="csv"
+                  style="cursor: pointer"
+                  type="file"
+                  accept=".csv"
+                  required
+                />
+                <button type="submit" class="btn btn-dark btn-sm">
+                  Upload File
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+        <!-- checking for csv files length if file is present in db then show it on screen -->
+        <% if(csvFiles.length>0) { %>
+        <div class="mt-4 mb-1">
+          <p
+            class="h4 bg-dark border border-info border-bottom-4 m-0 p-1 text-center text-white"
+          >
+            Uploaded .CSV files
+          </p>
+          <div class="mb-2">
+            <ul class="list-group list-group-numbered rounded-0">
+              <% for(var i = 0; i < csvFiles.length; i++) { %>
+              <li class="list-group-item list-group-item-light">
+                <a href="/csv_data_file/<%= csvFiles[i].data.csvFileName %>">
+                  <%= csvFiles[i].data.csvFileName %>
+                </a>
+              </li>
+              <% } %>
+            </ul>
+          </div>
+        </div>
+        <% } %>
+      </div>
+    </div>
+    <% } %>
+    <!-- importing CDN of jquery and datables for pagination and sorting table data-->
+    <script
+      src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.3/jquery.min.js"
+      integrity="sha512-STof4xm1wgkfm7heWqFJVn58Hm3EtS31XFaagaa8VMReCXAkQnJZ+jEy8PCC/iT18dFy95WcExNHFTqLyp72eQ=="
+      crossorigin="anonymous"
+      referrerpolicy="no-referrer"
+    ></script>
+
+    <script
+      type="text/javascript"
+      src="https://cdn.datatables.net/v/dt/dt-1.10.22/datatables.min.js"
+    ></script>
+
+    <!-- for pagelength -->
+    <script>
+      $(document).ready(function () {
+        $("#csvTable").DataTable({
+          pageLength: 100,
+          searching: false,
+        });
+      });
+
+      // function is called when search option needs to perform
+      function SearchByFirstName() {
+        var inputText, filter, table, tr, td, i, textValue;
+        inputText = document.getElementById("Search");
+        filter = inputText.value.toUpperCase();
+        table = document.getElementsByTagName("table")[0];
+        tr = table.getElementsByTagName("tr");
+        for (i = 0; i < tr.length; i++) {
+          td = tr[i].getElementsByTagName("td")[0];
+          if (td) {
+            textValue = td.textContent || td.innerText;
+            if (textValue.toUpperCase().indexOf(filter) > -1) {
+              tr[i].style.display = "";
+            } else {
+              tr[i].style.display = "none";
+            }
+          }
+        }
+      }
+    </script>
+  </body>
+</html>
